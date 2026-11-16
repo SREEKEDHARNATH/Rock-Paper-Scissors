@@ -1,5 +1,6 @@
-#include <iostream>
+#include "core.hpp"
 
 int main(){
-    std::cout << "hi\n";
+    rRun();
+    rQuit();
 }
