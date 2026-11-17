@@ -6,6 +6,7 @@
 #include "SDL_timer.h"
 #include "SDL_video.h"
 #include "api.hpp"
+#include "listeners.hpp"
 #include <iostream>
 #include <utility>
 
@@ -29,13 +30,20 @@ void rRun(){
                 case SDL_QUIT:
                     running=false;
                     break;
+                case SDL_KEYUP:
+                case SDL_KEYDOWN:
+                    rKReg(e.key);
+                    break;
             }
         }
-
+        if (rKIsPressed(SDLK_ESCAPE)){
+            running=false;
+        }
         SDL_RenderClear(rGetRenderer());
         img.draw();
         SDL_RenderPresent(rGetRenderer());
         
+        rKUpdate();
         SDL_Delay(16);
     }
 }
