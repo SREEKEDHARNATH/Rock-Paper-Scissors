@@ -34,6 +34,16 @@ void rRun(){
                 case SDL_KEYDOWN:
                     rKReg(e.key);
                     break;
+                case SDL_MOUSEMOTION:
+                    rMReg(e.motion);
+                    break;
+                case SDL_MOUSEWHEEL:
+                    rMReg(e.wheel);
+                    break;
+                case SDL_MOUSEBUTTONUP:
+                case SDL_MOUSEBUTTONDOWN:
+                    rMReg(e.button);
+                    break;
             }
         }
         if (rKIsPressed(SDLK_ESCAPE)){
@@ -44,6 +54,7 @@ void rRun(){
         SDL_RenderPresent(rGetRenderer());
         
         rKUpdate();
+        rMUpdate();
         SDL_Delay(16);
     }
 }
