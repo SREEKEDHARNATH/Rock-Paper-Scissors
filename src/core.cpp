@@ -5,6 +5,7 @@
 #include "SDL_render.h"
 #include "SDL_timer.h"
 #include "SDL_video.h"
+#include "api.hpp"
 #include <iostream>
 #include <utility>
 
@@ -18,6 +19,9 @@ void rRun(){
 
     SDL_Event e;
     bool running = true;
+
+    rImage img(255,0,0);
+
     SDL_ShowWindow(rGetWindow());
     while (running) {
         while (SDL_PollEvent(&e)) {
@@ -29,6 +33,7 @@ void rRun(){
         }
 
         SDL_RenderClear(rGetRenderer());
+        img.draw();
         SDL_RenderPresent(rGetRenderer());
         
         SDL_Delay(16);
