@@ -6,6 +6,7 @@
 #include "SDL_timer.h"
 #include "SDL_video.h"
 #include "api.hpp"
+#include "game.hpp"
 #include "listeners.hpp"
 #include <iostream>
 #include <utility>
@@ -22,7 +23,7 @@ void rRun(){
     bool running = true;
 
     rImage img(255,0,0);
-
+    
     SDL_ShowWindow(rGetWindow());
     while (running) {
         while (SDL_PollEvent(&e)) {
