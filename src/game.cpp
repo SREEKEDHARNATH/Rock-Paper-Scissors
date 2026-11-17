@@ -53,7 +53,7 @@ SDL_Rect drag(rImage& obj){
         p.second=true;
         hold.push_back(false);
         rects.push_back(obj.r);
-        p.first=hold.size()-1;
+        p.first=(hold.size()-1);
     }
 
     SDL_Rect mouse={rMGetX(),rMGetY(),1,1};
@@ -67,8 +67,8 @@ SDL_Rect drag(rImage& obj){
     }
     if (hold[p.first]){
         SDL_Rect r = obj.r;
-        r.x=mouse.x;
-        r.y=mouse.y;
+        r.x=mouse.x-(r.w/2);
+        r.y=mouse.y-(r.h/2);
         return r;
     }
     else {
