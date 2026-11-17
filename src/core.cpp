@@ -22,7 +22,11 @@ void rRun(){
     SDL_Event e;
     bool running = true;
 
-    rImage img(255,0,0);
+    rImage bg("assets/images/bg.png",false);
+    rImage rock("assets/images/rock.png");
+    rImage paper("assets/images/paper.png");
+    rImage scissors("assets/images/scissors.png");
+    rImage selection("assets/images/selection.png");
     
     SDL_ShowWindow(rGetWindow());
     while (running) {
@@ -51,7 +55,8 @@ void rRun(){
             running=false;
         }
         SDL_RenderClear(rGetRenderer());
-        img.draw();
+        bg.draw();
+        draw(rock, paper, scissors, selection);
         SDL_RenderPresent(rGetRenderer());
         
         rKUpdate();

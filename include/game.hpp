@@ -1,5 +1,6 @@
 #pragma once
 
+#include "api.hpp"
 enum playOption{
     ROCK,
     PAPER,
@@ -12,3 +13,4 @@ enum state{
 };
 
 state evaluate(playOption p1, playOption p2);
+void draw(rImage& rock,rImage& paper,rImage& Scissor,rImage& select);
