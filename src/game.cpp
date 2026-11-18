@@ -1,6 +1,7 @@
 #include "game.hpp"
 #include "SDL_mouse.h"
 #include "SDL_rect.h"
+#include "SDL_timer.h"
 #include "api.hpp"
 #include "core.hpp"
 #include "listeners.hpp"
@@ -44,12 +45,15 @@ state evaluate(playOption p1, playOption p2){
         }
     }
 }
-SDL_Rect drag(rImage& obj,rImage& select){
+bool confirmed=false;
+SDL_Rect drag(rImage& obj,rImage& select,playOption pla){
+    static rImage confirm("assets/images/confirm.png");
     static std::unordered_map<int, std::pair<int, bool>> map;
     static std::vector<SDL_Rect> rects;
     static std::vector<bool> hold;
     static std::vector<bool> sel;
-
+    static int confirmedpos;
+    SDL_Rect mouse={rMGetX(),rMGetY(),1,1};
     auto& p = map[obj.r.x+obj.r.y+obj.r.w+obj.r.h];
     if (!p.second){
         p.second=true;
@@ -58,61 +62,124 @@ SDL_Rect drag(rImage& obj,rImage& select){
         rects.push_back(obj.r);
         p.first=(hold.size()-1);
     }
-
-    SDL_Rect mouse={rMGetX(),rMGetY(),1,1};
-    if (SDL_HasIntersection(&obj.r, &mouse) || hold[p.first]){
-        if (rMIsDown(SDL_BUTTON_LEFT)){
-            hold[p.first]=true;
+    if (!confirmed){
+        for (int i=0;i<sel.size();i++){
+            if (sel[i]){
+                confirm.draw();
+                if (SDL_HasIntersection(&mouse,&confirm.r)){
+                    if (rMIsPressed(SDL_BUTTON_LEFT)){
+                        confirmed=true;
+                        confirmedpos=i;
+                        if (pla == playOption::ROCK){
+                            rSend("Rock");
+                            std::cout << "Rock\n";
+                        }
+                        else if (pla == playOption::PAPER){
+                            rSend("Paper");
+                            std::cout << "Paper\n";
+                        }
+                        else {
+                            rSend("Scissors");
+                            std::cout << "Scissors\n";
+                        }
+                    }
+                }
+            }
+        }
+        if (SDL_HasIntersection(&obj.r, &mouse) || hold[p.first]){
+            if (rMIsDown(SDL_BUTTON_LEFT)){
+                hold[p.first]=true;
+            }
+            else {
+                hold[p.first]=false;
+            }
+        }
+        if (hold[p.first]){
+            obj.r.x=mouse.x-(obj.r.w/2);
+            obj.r.y=mouse.y-(obj.r.h/2);
+            SDL_Rect se=select.r;
+            se.w*=2;
+            se.h*=2;
+            if (SDL_HasIntersection(&mouse, &se)){
+                sel[p.first]=true;
+                return select.r;
+            }
+            sel[p.first]=false;
+            return obj.r;
         }
         else {
-            hold[p.first]=false;
+            if (sel[p.first]){
+                return select.r;
+            }
+            return rects[p.first];
         }
-    }
-    if (hold[p.first]){
-        obj.r.x=mouse.x-(obj.r.w/2);
-        obj.r.y=mouse.y-(obj.r.h/2);
-        SDL_Rect se=select.r;
-        se.w*=2;
-        se.h*=2;
-        if (SDL_HasIntersection(&mouse, &se)){
-            sel[p.first]=true;
-            return select.r;
-        }
-        sel[p.first]=false;
-        return obj.r;
     }
     else {
-        if (sel[p.first]){
-            return select.r;
-        }
-        return rects[p.first];
+        return select.r;
     }
 }
+bool same(SDL_Rect r,SDL_Rect r2){
+    return (r.x==r2.x) && (r.y==r2.y) && (r.w==r2.w) && (r.h==r2.h);
+}
 void draw(rImage& rock,rImage& paper,rImage& Scissor,rImage& select, bool player1){
-    select.r.x=(rGetW()/2)-select.r.w;
-    select.r.y=(rGetH()/2)+10;
-    rock.r.x=200;
-    paper.r.x=600;
-    Scissor.r.x=1000;
-    if (player1){
-        rock.r.y=600;
-        paper.r.y=600;
-        Scissor.r.y=600;
+    playOption pl;
+    if (same(rock.r, select.r)){
+        pl=playOption::ROCK;
+    }
+    else if (same(paper.r, select.r)){
+        pl=playOption::PAPER;
+    }
+    else if (same(Scissor.r, select.r)){
+        pl=playOption::SCISSORS;
+    }
+    if (confirmed){
+        static auto start=SDL_GetTicks64();
+        if ((SDL_GetTicks64()-start)>2000){
+            auto msg = rRecieve();
+            if (!msg.empty()){
+                playOption en;
+                if (msg == "Rock"){
+                    en=playOption::ROCK;
+                }
+                else if (msg=="Paper"){
+                    en=playOption::PAPER;
+                }
+                else if (msg=="Scissors"){
+                    en=playOption::SCISSORS;
+                }
+                std::cout << msg << "\n";
+                auto res=evaluate(pl,en);
+                std::cout << ((res == state::WIN) ? "Win" : ((res==state::TIE) ? "Tie" : "Loss")) << "\n";
+                confirmed=false;
+            }
+            start=SDL_GetTicks64();
+        }
     }
     else {
-        rock.r.y=100;
-        paper.r.y=100;
-        Scissor.r.y=100;
-        select.r.y-=select.r.h+10;
+        select.r.x=(rGetW()/2)-select.r.w;
+        select.r.y=(rGetH()/2)+10;
+        rock.r.x=200;
+        paper.r.x=600;
+        Scissor.r.x=1000;
+        if (player1){
+            rock.r.y=600;
+            paper.r.y=600;
+            Scissor.r.y=600;
+        }
+        else {
+            rock.r.y=100;
+            paper.r.y=100;
+            Scissor.r.y=100;
+            select.r.y-=select.r.h+10;
+        }
+        
+        rock.r=drag(rock,select,playOption::ROCK);
+        paper.r=drag(paper,select,playOption::PAPER);
+        Scissor.r=drag(Scissor,select,playOption::SCISSORS);
+        select.draw();
+    
+        rock.draw();
+        paper.draw();
+        Scissor.draw();
     }
-    
-    rock.r=drag(rock,select);
-    paper.r=drag(paper,select);
-    Scissor.r=drag(Scissor,select);
-    
-    select.draw();
-
-    rock.draw();
-    paper.draw();
-    Scissor.draw();
 }
