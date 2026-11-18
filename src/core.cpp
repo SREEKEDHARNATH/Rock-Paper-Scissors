@@ -48,6 +48,28 @@ TCPsocket handlerequest(bool listen){
     return sockett;
 }
 TCPsocket socketimp;
+void rSend(const char* msg){
+    auto bytes = SDLNet_TCP_Send(socketimp, msg, sizeof(msg));
+    if (bytes<=0){
+        std::cerr << SDLNet_GetError() << "\n";
+    }
+}
+std::string rRecieve(){
+    if (SDLNet_CheckSockets(socketset, 0)){
+        if (SDLNet_SocketReady(socketimp)){
+            char buffer[256]={0};
+            auto bytes = SDLNet_TCP_Recv(socketimp, buffer, sizeof(buffer)-1);
+            if (bytes>0){
+                buffer[bytes]='\0';
+                return buffer;
+            }
+            else {
+               std::cerr << SDLNet_GetError() << "\n";
+            }
+        }
+    }
+    return "";
+}
 void rRun(int argc, char** argv){
     auto i=init(argc, argv);
     if (!i.first){
@@ -90,33 +112,9 @@ void rRun(int argc, char** argv){
         if (rKIsPressed(SDLK_ESCAPE)){
             running=false;
         }
-        if (rKIsPressed(SDLK_r)){
-            if (SDLNet_CheckSockets(socketset, 0)){
-                if (SDLNet_SocketReady(socketimp)){
-                    std::cout << "recieving\n";
-                    char buffer[256]={0};
-                    auto bytes = SDLNet_TCP_Recv(socketimp, buffer, sizeof(buffer)-1);
-                    if (bytes>0){
-                        buffer[bytes]='\0';
-                        std::cout << buffer << "\n";
-                    }
-                    else {
-                        std::cerr << SDLNet_GetError() << "\n";
-                    }
-                }
-            }
-        }
-        if (rKIsPressed(SDLK_s)){
-            std::cout << "sending\n";
-            char buffer[]="How are you";
-            auto bytes = SDLNet_TCP_Send(socketimp, buffer, sizeof(buffer));
-            if (bytes<=0){
-                std::cerr << SDLNet_GetError() << "\n";
-            }
-        }
         SDL_RenderClear(rGetRenderer());
         bg.draw();
-        draw(rock, paper, scissors, selection);
+        draw(rock, paper, scissors, selection, argv[argc-1] != std::string("-player2"));
         SDL_RenderPresent(rGetRenderer());
         
         rKUpdate();
@@ -145,7 +143,7 @@ std::pair<bool, const char*> init(int argc, char** argv){
         return {false, SDL_GetError()};
     }
 
-    socketimp = handlerequest(argc < 2);
+    socketimp = handlerequest(argv[argc-1] != std::string("-player2"));
     if (socketimp){
         socketset=SDLNet_AllocSocketSet(1);
         SDLNet_TCP_AddSocket(socketset, socketimp);
