@@ -52,6 +52,7 @@ SDL_Rect drag(rImage& obj,rImage& select,playOption pla){
     static std::vector<SDL_Rect> rects;
     static std::vector<bool> hold;
     static std::vector<bool> sel;
+    static std::vector<playOption> playop;
     static int confirmedpos;
     SDL_Rect mouse={rMGetX(),rMGetY(),1,1};
     auto& p = map[obj.r.x+obj.r.y+obj.r.w+obj.r.h];
@@ -60,6 +61,7 @@ SDL_Rect drag(rImage& obj,rImage& select,playOption pla){
         hold.push_back(false);
         sel.push_back(false);
         rects.push_back(obj.r);
+        playop.push_back(pla);
         p.first=(hold.size()-1);
     }
     if (!confirmed){
@@ -70,17 +72,14 @@ SDL_Rect drag(rImage& obj,rImage& select,playOption pla){
                     if (rMIsPressed(SDL_BUTTON_LEFT)){
                         confirmed=true;
                         confirmedpos=i;
-                        if (pla == playOption::ROCK){
-                            rSend("Rock");
-                            std::cout << "Rock\n";
+                        if (playop[i] == playOption::ROCK){
+                            rSend("R");
                         }
-                        else if (pla == playOption::PAPER){
-                            rSend("Paper");
-                            std::cout << "Paper\n";
+                        else if (playop[i] == playOption::PAPER){
+                            rSend("P");
                         }
                         else {
-                            rSend("Scissors");
-                            std::cout << "Scissors\n";
+                            rSend("S");
                         }
                     }
                 }
@@ -138,16 +137,15 @@ void draw(rImage& rock,rImage& paper,rImage& Scissor,rImage& select, bool player
             auto msg = rRecieve();
             if (!msg.empty()){
                 playOption en;
-                if (msg == "Rock"){
+                if (msg == "R"){
                     en=playOption::ROCK;
                 }
-                else if (msg=="Paper"){
+                else if (msg=="P"){
                     en=playOption::PAPER;
                 }
-                else if (msg=="Scissors"){
+                else if (msg=="S"){
                     en=playOption::SCISSORS;
                 }
-                std::cout << msg << "\n";
                 auto res=evaluate(pl,en);
                 std::cout << ((res == state::WIN) ? "Win" : ((res==state::TIE) ? "Tie" : "Loss")) << "\n";
                 confirmed=false;

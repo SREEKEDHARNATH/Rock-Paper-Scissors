@@ -32,11 +32,8 @@ TCPsocket handlerequest(bool listen){
             return nullptr;
         }
         std::cout << "listening..\n";
-        int i=1;
         while (!sockett){
-            std::cout << i << "\n";
             sockett=SDLNet_TCP_Accept(listener);
-            i++;
             SDL_Delay(10);
         }
         SDLNet_TCP_Close(listener);
