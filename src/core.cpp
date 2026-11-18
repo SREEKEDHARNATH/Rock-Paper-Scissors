@@ -1,5 +1,7 @@
 #include "core.hpp"
 #include "SDL.h"
+#include "SDL_image.h"
+#include "SDL_net.h"
 #include "SDL_error.h"
 #include "SDL_events.h"
 #include "SDL_render.h"
@@ -11,9 +13,43 @@
 #include <iostream>
 #include <utility>
 
-std::pair<bool, const char*> init();
-void rRun(){
-    auto i=init();
+const char* ip ="127.0.0.1";
+const int port=8000;
+
+std::pair<bool, const char*> init(int argc, char** argv);
+SDLNet_SocketSet socketset;
+TCPsocket handlerequest(bool listen){
+    IPaddress i;
+    TCPsocket sockett=nullptr;
+    if (SDLNet_ResolveHost(&i, listen ? NULL : ip, port)){
+        std::cerr << SDLNet_GetError() << "\n";
+        return nullptr;
+    }
+    if (listen){
+        auto listener = SDLNet_TCP_Open(&i);
+        if (!listener){
+            std::cerr << SDLNet_GetError() << "\n";
+            return nullptr;
+        }
+        std::cout << "listening..\n";
+        int i=1;
+        while (!sockett){
+            std::cout << i << "\n";
+            sockett=SDLNet_TCP_Accept(listener);
+            i++;
+            SDL_Delay(10);
+        }
+        SDLNet_TCP_Close(listener);
+    }
+    else {
+        std::cout << "connecting..\n";
+        sockett = SDLNet_TCP_Open(&i);
+    }
+    return sockett;
+}
+TCPsocket socketimp;
+void rRun(int argc, char** argv){
+    auto i=init(argc, argv);
     if (!i.first){
         std::cerr << i.second << "\n";
         return;
@@ -54,6 +90,30 @@ void rRun(){
         if (rKIsPressed(SDLK_ESCAPE)){
             running=false;
         }
+        if (rKIsPressed(SDLK_r)){
+            if (SDLNet_CheckSockets(socketset, 0)){
+                if (SDLNet_SocketReady(socketimp)){
+                    std::cout << "recieving\n";
+                    char buffer[256]={0};
+                    auto bytes = SDLNet_TCP_Recv(socketimp, buffer, sizeof(buffer)-1);
+                    if (bytes>0){
+                        buffer[bytes]='\0';
+                        std::cout << buffer << "\n";
+                    }
+                    else {
+                        std::cerr << SDLNet_GetError() << "\n";
+                    }
+                }
+            }
+        }
+        if (rKIsPressed(SDLK_s)){
+            std::cout << "sending\n";
+            char buffer[]="How are you";
+            auto bytes = SDLNet_TCP_Send(socketimp, buffer, sizeof(buffer));
+            if (bytes<=0){
+                std::cerr << SDLNet_GetError() << "\n";
+            }
+        }
         SDL_RenderClear(rGetRenderer());
         bg.draw();
         draw(rock, paper, scissors, selection);
@@ -65,9 +125,16 @@ void rRun(){
     }
 }
 
-std::pair<bool, const char*> init(){
+std::pair<bool, const char*> init(int argc, char** argv){
+    int img_flags=IMG_INIT_PNG;
     if (SDL_Init(SDL_INIT_EVERYTHING)){
         return {false, SDL_GetError()};
+    }
+    if (SDLNet_Init()){
+        return {false, SDLNet_GetError()};;
+    }
+    if ((IMG_Init(img_flags) & img_flags) != img_flags){
+        return {false, IMG_GetError()};;
     }
     rGetWindow()=SDL_CreateWindow(rGetTitle(), SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED, rGetW(), rGetH(), SDL_WINDOW_HIDDEN);
     if (!rGetWindow()){
@@ -77,9 +144,21 @@ std::pair<bool, const char*> init(){
     if (!rGetRenderer()){
         return {false, SDL_GetError()};
     }
+
+    socketimp = handlerequest(argc < 2);
+    if (socketimp){
+        socketset=SDLNet_AllocSocketSet(1);
+        SDLNet_TCP_AddSocket(socketset, socketimp);
+    }
+
     return {true,""};
 }
 void rQuit(){
+    SDLNet_TCP_DelSocket(socketset, socketimp);
+    SDLNet_FreeSocketSet(socketset);
+    SDLNet_TCP_Close(socketimp);
+    SDLNet_Quit();
+    IMG_Quit();
     if (rGetRenderer()){
         SDL_DestroyRenderer(rGetRenderer());
     }

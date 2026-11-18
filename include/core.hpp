@@ -2,7 +2,7 @@
 #include "SDL_render.h"
 #include "SDL_video.h"
 
-void rRun();
+void rRun(int argc, char** argv);
 void rQuit();
 SDL_Window*& rGetWindow();
 SDL_Renderer*& rGetRenderer();
