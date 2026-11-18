@@ -50,7 +50,6 @@ SDL_Rect drag(rImage& obj,rImage& select,playOption pla){
     static rImage confirm("assets/images/confirm.png");
     static std::unordered_map<int, std::pair<int, bool>> map;
     static std::vector<SDL_Rect> rects;
-    static std::vector<SDL_Rect> newrects;
 
     static std::vector<bool> hold;
     static std::vector<bool> sel;
@@ -67,7 +66,6 @@ SDL_Rect drag(rImage& obj,rImage& select,playOption pla){
         hold.push_back(false);
         sel.push_back(false);
         rects.push_back(obj.r);
-        newrects.push_back(obj.r);
         playop.push_back(pla);
         p.first=(hold.size()-1);
     }
@@ -94,25 +92,24 @@ SDL_Rect drag(rImage& obj,rImage& select,playOption pla){
         }
         if (SDL_HasIntersection(&obj.r, &mouse) || hold[p.first]){
             if (rMIsDown(SDL_BUTTON_LEFT)){
-                hold[p.first]=true;
+                bool shhold=false;
+                for (int i=0;i<hold.size();i++){
+                    if (i==p.first){
+                        continue;
+                    }
+                    if (hold[i]){
+                        shhold=true;
+                    }
+                }
+                hold[p.first]=!shhold;
             }
             else {
                 hold[p.first]=false;
             }
         }
         if (hold[p.first]){
-            bool same=false;
-            for (auto& r : newrects){
-                if (((mouse.x-(obj.r.w/2))==r.x) && ((mouse.y-(obj.r.h/2))==r.y)){
-                    same=true;
-                    break;
-                }
-            }
-            if (!same){
-                obj.r.x=mouse.x-(obj.r.w/2);
-                obj.r.y=mouse.y-(obj.r.h/2);
-            }
-            newrects[p.first]=obj.r;
+            obj.r.x=mouse.x-(obj.r.w/2);
+            obj.r.y=mouse.y-(obj.r.h/2);
             SDL_Rect se=select.r;
             se.x-=(se.w*1.5);
             se.y-=(se.h*1.5);
