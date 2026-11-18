@@ -12,3 +12,4 @@ SDL_Renderer*& rGetRenderer();
 int rGetW();
 int rGetH();
 const char* rGetTitle();
+bool& rIsPlayer1();

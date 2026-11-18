@@ -50,10 +50,16 @@ SDL_Rect drag(rImage& obj,rImage& select,playOption pla){
     static rImage confirm("assets/images/confirm.png");
     static std::unordered_map<int, std::pair<int, bool>> map;
     static std::vector<SDL_Rect> rects;
+    static std::vector<SDL_Rect> newrects;
+
     static std::vector<bool> hold;
     static std::vector<bool> sel;
     static std::vector<playOption> playop;
     static int confirmedpos;
+    if (!(confirm.r.x==select.r.x)){
+        confirm.r.x=select.r.x+90;
+        confirm.r.y=select.r.y;
+    }
     SDL_Rect mouse={rMGetX(),rMGetY(),1,1};
     auto& p = map[obj.r.x+obj.r.y+obj.r.w+obj.r.h];
     if (!p.second){
@@ -61,6 +67,7 @@ SDL_Rect drag(rImage& obj,rImage& select,playOption pla){
         hold.push_back(false);
         sel.push_back(false);
         rects.push_back(obj.r);
+        newrects.push_back(obj.r);
         playop.push_back(pla);
         p.first=(hold.size()-1);
     }
@@ -94,11 +101,23 @@ SDL_Rect drag(rImage& obj,rImage& select,playOption pla){
             }
         }
         if (hold[p.first]){
-            obj.r.x=mouse.x-(obj.r.w/2);
-            obj.r.y=mouse.y-(obj.r.h/2);
+            bool same=false;
+            for (auto& r : newrects){
+                if (((mouse.x-(obj.r.w/2))==r.x) && ((mouse.y-(obj.r.h/2))==r.y)){
+                    same=true;
+                    break;
+                }
+            }
+            if (!same){
+                obj.r.x=mouse.x-(obj.r.w/2);
+                obj.r.y=mouse.y-(obj.r.h/2);
+            }
+            newrects[p.first]=obj.r;
             SDL_Rect se=select.r;
-            se.w*=2;
-            se.h*=2;
+            se.x-=(se.w*1.5);
+            se.y-=(se.h*1.5);
+            se.w*=3;
+            se.h*=3;
             if (SDL_HasIntersection(&mouse, &se)){
                 sel[p.first]=true;
                 return select.r;
@@ -133,7 +152,7 @@ void draw(rImage& rock,rImage& paper,rImage& Scissor,rImage& select, bool player
     }
     if (confirmed){
         static auto start=SDL_GetTicks64();
-        if ((SDL_GetTicks64()-start)>2000){
+        if ((SDL_GetTicks64()-start)>1000){
             auto msg = rRecieve();
             if (!msg.empty()){
                 playOption en;
@@ -147,7 +166,7 @@ void draw(rImage& rock,rImage& paper,rImage& Scissor,rImage& select, bool player
                     en=playOption::SCISSORS;
                 }
                 auto res=evaluate(pl,en);
-                std::cout << ((res == state::WIN) ? "Win" : ((res==state::TIE) ? "Tie" : "Loss")) << "\n";
+                std::cout << (rIsPlayer1() ? "Player1 has " : "Player2 has ") << ((res == state::WIN) ? "Won." : ((res==state::TIE) ? "Tied." : "Loss.")) << "\n";
                 confirmed=false;
             }
             start=SDL_GetTicks64();

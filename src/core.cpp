@@ -70,9 +70,10 @@ std::string rRecieve(){
 void rRun(int argc, char** argv){
     for (int i=0;i<argc;i++){
         auto st=std::string(argv[i]);
-        if (st.find("192.") != st.npos){
-            std::cout << "Using ip:- " << st << "\n";
+        if ((st.find(".com") != st.npos) || st.find("192.") != st.npos){
+            std::cout << "Using host:- " << st << "\n";
             ip=st;
+            break;
         }
     }
     auto i=init(argc, argv);
@@ -146,8 +147,8 @@ std::pair<bool, const char*> init(int argc, char** argv){
     if (!rGetRenderer()){
         return {false, SDL_GetError()};
     }
-
-    socketimp = handlerequest(argv[argc-1] != std::string("-player2"));
+    rIsPlayer1()=argv[argc-1] != std::string("-player2");
+    socketimp = handlerequest(rIsPlayer1());
     if (socketimp){
         socketset=SDLNet_AllocSocketSet(1);
         SDLNet_TCP_AddSocket(socketset, socketimp);
@@ -189,4 +190,8 @@ int rGetH(){
 }
 const char* rGetTitle(){
     return "Rock Paper Scissors";
+}
+bool& rIsPlayer1(){
+    static bool p1;
+    return p1;
 }
