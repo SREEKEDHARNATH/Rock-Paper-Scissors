@@ -13,7 +13,7 @@
 #include <iostream>
 #include <utility>
 
-const char* ip ="127.0.0.1";
+std::string ip ="127.0.0.1";
 const int port=8000;
 
 std::pair<bool, const char*> init(int argc, char** argv);
@@ -21,7 +21,7 @@ SDLNet_SocketSet socketset;
 TCPsocket handlerequest(bool listen){
     IPaddress i;
     TCPsocket sockett=nullptr;
-    if (SDLNet_ResolveHost(&i, listen ? NULL : ip, port)){
+    if (SDLNet_ResolveHost(&i, listen ? NULL : ip.c_str(), port)){
         std::cerr << SDLNet_GetError() << "\n";
         return nullptr;
     }
@@ -71,6 +71,13 @@ std::string rRecieve(){
     return "";
 }
 void rRun(int argc, char** argv){
+    for (int i=0;i<argc;i++){
+        auto st=std::string(argv[i]);
+        if (st.find("192.") != st.npos){
+            std::cout << "Using ip:- " << st << "\n";
+            ip=st;
+        }
+    }
     auto i=init(argc, argv);
     if (!i.first){
         std::cerr << i.second << "\n";
@@ -152,9 +159,13 @@ std::pair<bool, const char*> init(int argc, char** argv){
     return {true,""};
 }
 void rQuit(){
-    SDLNet_TCP_DelSocket(socketset, socketimp);
-    SDLNet_FreeSocketSet(socketset);
-    SDLNet_TCP_Close(socketimp);
+    if (socketset){
+        if (socketimp){
+            SDLNet_TCP_DelSocket(socketset, socketimp);
+            SDLNet_TCP_Close(socketimp);
+        }
+        SDLNet_FreeSocketSet(socketset);
+    }
     SDLNet_Quit();
     IMG_Quit();
     if (rGetRenderer()){
