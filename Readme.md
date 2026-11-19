@@ -1,5 +1,38 @@
 # Rock Paper Scissors
 
+A Rock Paper Scissor game that allows users to play with their friends on wifi.
+
+## Features
+* Interactive drag and drop play style
+* Score system
+* Hand drawn assets
+* Nice Music and sound
+* Simple installation
+
+## Steps to download
+* Download the run.sh file from release or
+```
+wget "https://github.com/SREEKEDHARNATH/Rock-Paper-Scissors/releases/download/v1.0/run.sh"
+```
+* Then
+```
+chmod +x run.sh
+./run.sh
+```
+* Then you will see
+```
+Copy this for other device ./run.sh -i 192.xxx.xx.x
+```
+* So copy it and paste it in on other device.
+
+## Things to check if not work
+* Turn off firewall as it is required to talk between ports
+* first run the ./run.sh(without the -i flag) then do the rest
+* It takes around 2 seconds to recieve status
+
+## Ai declaration
+None
+
 ## Credits
 
 Music by Toby fox undertale <a href="https://www.youtube.com/watch?v=0FCvzsVlXpQ&list=RD0FCvzsVlXpQ&start_radio=1">Watch official yt video</a> published by Materia Music publishing
