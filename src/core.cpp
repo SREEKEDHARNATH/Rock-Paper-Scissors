@@ -99,7 +99,7 @@ void rRun(int argc, char** argv){
     m.setvol(10);
     m.play();
     
-    rText status(f,std::string(rIsPlayer1() ? "Player1 Play" : "Player2 Play").c_str());
+    rText status(f,std::string(rIsPlayer1() ? "Player1 Play" : "Player2 Play").c_str(), {0,0,0,0});
     status.img.r.x+=(rGetW()/2)-(status.img.r.w+30);
 
     SDL_ShowWindow(rGetWindow());
@@ -142,7 +142,7 @@ SDL_Surface* icon;
 std::pair<bool, const char*> init(int argc, char** argv){
     int img_flags=IMG_INIT_PNG;
     int sound_flags=MIX_INIT_MP3;
-    if (SDL_Init(SDL_INIT_EVERYTHING)){
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_AUDIO | SDL_INIT_TIMER)){
         return {false, SDL_GetError()};
     }
     if (SDLNet_Init()){

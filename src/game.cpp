@@ -76,17 +76,17 @@ SDL_Rect drag(rImage& obj,rImage& select,playOption pla,rFont& f,rText& status){
                         confirmedpos=i;
                         if (playop[i] == playOption::ROCK){
                             rSend("R");
-                            status.set(f, ((rIsPlayer1() ? "Player1 has chosen " : "Player2 has chosen ") + std::string("Rock")).c_str());
+                            status.set(f, ((rIsPlayer1() ? "Player1 has chosen " : "Player2 has chosen ") + std::string("Rock")).c_str(), {0,0,0,0});
                             rockS.play();
                         }
                         else if (playop[i] == playOption::PAPER){
                             rSend("P");
-                            status.set(f, ((rIsPlayer1() ? "Player1 has chosen " : "Player2 has chosen ") + std::string("Paper")).c_str());
+                            status.set(f, ((rIsPlayer1() ? "Player1 has chosen " : "Player2 has chosen ") + std::string("Paper")).c_str(), {0,0,0,0});
                             paperS.play();
                         }
                         else {
                             rSend("S");
-                            status.set(f, ((rIsPlayer1() ? "Player1 has chosen " : "Player2 has chosen ") + std::string("Scissor")).c_str());
+                            status.set(f, ((rIsPlayer1() ? "Player1 has chosen " : "Player2 has chosen ") + std::string("Scissor")).c_str(), {0,0,0,0});
                             scissorS.play();
                         }
                     }
@@ -154,8 +154,8 @@ void draw(rImage& rock,rImage& paper,rImage& Scissor,rImage& select, bool player
     static rSoundEffect winS("assets/sound effects/win.mp3");
     static rSoundEffect lossS("assets/sound effects/loss.mp3");
     static rSoundEffect tieS("assets/sound effects/tie.mp3");
-    static rText score(f,"0");
-    static rText scoretxt(f,"Score:- ");
+    static rText score(f,"0", {0,0,0,0});
+    static rText scoretxt(f,"Score:- ", {0,0,0,0});
     score.img.r.x=scoretxt.img.r.w+10;
     static int sc=0;
     status.draw();
@@ -209,13 +209,13 @@ void draw(rImage& rock,rImage& paper,rImage& Scissor,rImage& select, bool player
                     sc=0;
                 }
                 if (std::stoi(score.getText())!=sc){
-                    score.set(f, std::to_string(sc).c_str());
+                    score.set(f, std::to_string(sc).c_str(), {0,0,0,0});
                 }
                 confirmed=false;
                 for (int i=0;i<sel.size();i++){
                     sel[i]=false;
                 }
-                status.set(f, txt.c_str());
+                status.set(f, txt.c_str(), {0,0,0,0});
             }
             start=SDL_GetTicks64();
         }
