@@ -98,7 +98,7 @@ void rRun(int argc, char** argv){
     m.play();
     
     rText status(f,"Play");
-    status.img.r.x+=(rGetW()/2)-(status.img.r.w+50);
+    status.img.r.x+=(rGetW()/2)-(status.img.r.w+30);
 
     SDL_ShowWindow(rGetWindow());
     while (running) {

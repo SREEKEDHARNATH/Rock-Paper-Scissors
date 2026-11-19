@@ -17,9 +17,6 @@ state evaluate(playOption p1, playOption p2){
         else if (p2==playOption::SCISSORS){
             return state::WIN;
         }
-        else {
-            return state::TIE;
-        }
     }
     else if (p1==playOption::PAPER){
         if (p2==playOption::ROCK){
@@ -27,9 +24,6 @@ state evaluate(playOption p1, playOption p2){
         }
         else if (p2==playOption::SCISSORS){
             return state::LOSS;
-        }
-        else {
-            return state::TIE;
         }
     }
     else {
@@ -39,10 +33,8 @@ state evaluate(playOption p1, playOption p2){
         else if (p2==playOption::PAPER){
             return state::WIN;
         }
-        else {
-            return state::TIE;
-        }
     }
+    return state::TIE;
 }
 bool confirmed=false;
 SDL_Rect drag(rImage& obj,rImage& select,playOption pla,rFont& f,rText& status){
@@ -149,8 +141,13 @@ void draw(rImage& rock,rImage& paper,rImage& Scissor,rImage& select, bool player
     static rSoundEffect winS("assets/sound effects/win.mp3");
     static rSoundEffect lossS("assets/sound effects/loss.mp3");
     static rSoundEffect tieS("assets/sound effects/tie.mp3");
-    
-    status.draw();    
+    static rText score(f,"0");
+    static rText scoretxt(f,"Score:- ");
+    score.img.r.x=scoretxt.img.r.w+10;
+    static int sc=0;
+    status.draw();
+    score.draw();
+    scoretxt.draw();
     playOption pl;
     if (same(rock.r, select.r)){
         pl=playOption::ROCK;
@@ -180,13 +177,21 @@ void draw(rImage& rock,rImage& paper,rImage& Scissor,rImage& select, bool player
                 switch (res) {
                     case state::WIN:
                         winS.play();
+                        sc++;
                         break;
                     case state::LOSS:
                         lossS.play();
+                        sc--;
                         break;
                     case state::TIE:
                         tieS.play();
                         break;
+                }
+                if (sc<0){
+                    sc=0;
+                }
+                if (std::stoi(score.getText())!=sc){
+                    score.set(f, std::to_string(sc).c_str());
                 }
                 confirmed=false;
                 std::string txt = ((rIsPlayer1() ? "Player1 has " : "Player2 has ") + std::string(((res == state::WIN) ? "Won." : ((res==state::TIE) ? "Tied." : "Loss."))));
