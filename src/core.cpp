@@ -1,6 +1,7 @@
 #include "core.hpp"
 #include "SDL.h"
 #include "SDL_image.h"
+#include "SDL_mixer.h"
 #include "SDL_net.h"
 #include "SDL_error.h"
 #include "SDL_events.h"
@@ -93,7 +94,12 @@ void rRun(int argc, char** argv){
     rImage selection("assets/images/selection.png");
     
     rFont f("assets/fonts/font.ttf");
-    rText t(f,"Hello World");
+    rMusic m("assets/music/MEGALOVANIA.mp3");
+    m.play();
+    
+    rText status(f,"Play");
+    status.img.r.x+=(rGetW()/2)-(status.img.r.w+50);
+
     SDL_ShowWindow(rGetWindow());
     while (running) {
         while (SDL_PollEvent(&e)) {
@@ -122,8 +128,7 @@ void rRun(int argc, char** argv){
         }
         SDL_RenderClear(rGetRenderer());
         bg.draw();
-        draw(rock, paper, scissors, selection, argv[argc-1] != std::string("-player2"));
-        t.draw();
+        draw(rock, paper, scissors, selection, argv[argc-1] != std::string("-player2"), f,status);
         SDL_RenderPresent(rGetRenderer());
         
         rKUpdate();
@@ -134,6 +139,7 @@ void rRun(int argc, char** argv){
 
 std::pair<bool, const char*> init(int argc, char** argv){
     int img_flags=IMG_INIT_PNG;
+    int sound_flags=MIX_INIT_MP3;
     if (SDL_Init(SDL_INIT_EVERYTHING)){
         return {false, SDL_GetError()};
     }
@@ -146,6 +152,10 @@ std::pair<bool, const char*> init(int argc, char** argv){
     if (TTF_Init()){
         return {false, TTF_GetError()};;
     }
+    if ((Mix_Init(sound_flags) & sound_flags) != sound_flags){
+        return {false, Mix_GetError()};;
+    }
+    Mix_OpenAudio(MIX_DEFAULT_FREQUENCY,MIX_DEFAULT_FORMAT,MIX_DEFAULT_CHANNELS,1024);
     rGetWindow()=SDL_CreateWindow(rGetTitle(), SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED, rGetW(), rGetH(), SDL_WINDOW_HIDDEN);
     if (!rGetWindow()){
         return {false, SDL_GetError()};
@@ -171,6 +181,8 @@ void rQuit(){
         }
         SDLNet_FreeSocketSet(socketset);
     }
+    Mix_CloseAudio();
+    Mix_Quit();
     TTF_Quit();
     SDLNet_Quit();
     IMG_Quit();

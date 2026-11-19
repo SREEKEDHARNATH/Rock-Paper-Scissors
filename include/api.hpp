@@ -1,5 +1,6 @@
 #pragma once
 
+#include "SDL_mixer.h"
 #include "SDL_pixels.h"
 #include "SDL_rect.h"
 #include "SDL_render.h"
@@ -37,4 +38,27 @@ class rText{
         void set(rFont& f,const char* txt,SDL_Colour fg={255,255,255,255});
         std::string getText();
         void draw();
+};
+class rMusic{
+    std::shared_ptr<Mix_Music> ptr;
+    int vol=20;
+    public:
+        rMusic(const char* file,bool load=true);
+        void set(const char* file);
+        void play(bool loops=true);
+        void pause();
+        void resume();
+        void halt();
+        void setvol(int vol);
+        std::shared_ptr<Mix_Music> get();
+};
+class rSoundEffect{
+    std::shared_ptr<Mix_Chunk> ptr;
+    int vol=40;
+    public:
+        rSoundEffect(const char* file,bool load=true);
+        void set(const char* file);
+        void play();
+        void setvol(int vol);
+        std::shared_ptr<Mix_Chunk> get();
 };

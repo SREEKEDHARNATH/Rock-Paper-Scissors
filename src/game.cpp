@@ -5,7 +5,6 @@
 #include "api.hpp"
 #include "core.hpp"
 #include "listeners.hpp"
-#include <iostream>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -46,7 +45,11 @@ state evaluate(playOption p1, playOption p2){
     }
 }
 bool confirmed=false;
-SDL_Rect drag(rImage& obj,rImage& select,playOption pla){
+SDL_Rect drag(rImage& obj,rImage& select,playOption pla,rFont& f,rText& status){
+    static rSoundEffect rockS("assets/sound effects/rock.mp3");
+    static rSoundEffect paperS("assets/sound effects/paper.mp3");
+    static rSoundEffect scissorS("assets/sound effects/scissor.mp3");
+    
     static rImage confirm("assets/images/confirm.png");
     static std::unordered_map<int, std::pair<int, bool>> map;
     static std::vector<SDL_Rect> rects;
@@ -79,12 +82,18 @@ SDL_Rect drag(rImage& obj,rImage& select,playOption pla){
                         confirmedpos=i;
                         if (playop[i] == playOption::ROCK){
                             rSend("R");
+                            status.set(f, ((rIsPlayer1() ? "Player1 has chosen " : "Player2 has chosen ") + std::string("Rock")).c_str());
+                            rockS.play();
                         }
                         else if (playop[i] == playOption::PAPER){
                             rSend("P");
+                            status.set(f, ((rIsPlayer1() ? "Player1 has chosen " : "Player2 has chosen ") + std::string("Paper")).c_str());
+                            paperS.play();
                         }
                         else {
                             rSend("S");
+                            status.set(f, ((rIsPlayer1() ? "Player1 has chosen " : "Player2 has chosen ") + std::string("Scissor")).c_str());
+                            scissorS.play();
                         }
                     }
                 }
@@ -92,16 +101,16 @@ SDL_Rect drag(rImage& obj,rImage& select,playOption pla){
         }
         if (SDL_HasIntersection(&obj.r, &mouse) || hold[p.first]){
             if (rMIsDown(SDL_BUTTON_LEFT)){
-                bool shhold=false;
+                bool shouldhold=false;
                 for (int i=0;i<hold.size();i++){
                     if (i==p.first){
                         continue;
                     }
                     if (hold[i]){
-                        shhold=true;
+                        shouldhold=true;
                     }
                 }
-                hold[p.first]=!shhold;
+                hold[p.first]=!shouldhold;
             }
             else {
                 hold[p.first]=false;
@@ -136,7 +145,12 @@ SDL_Rect drag(rImage& obj,rImage& select,playOption pla){
 bool same(SDL_Rect r,SDL_Rect r2){
     return (r.x==r2.x) && (r.y==r2.y) && (r.w==r2.w) && (r.h==r2.h);
 }
-void draw(rImage& rock,rImage& paper,rImage& Scissor,rImage& select, bool player1){
+void draw(rImage& rock,rImage& paper,rImage& Scissor,rImage& select, bool player1,rFont& f,rText& status){
+    static rSoundEffect winS("assets/sound effects/win.mp3");
+    static rSoundEffect lossS("assets/sound effects/loss.mp3");
+    static rSoundEffect tieS("assets/sound effects/tie.mp3");
+    
+    status.draw();    
     playOption pl;
     if (same(rock.r, select.r)){
         pl=playOption::ROCK;
@@ -163,8 +177,20 @@ void draw(rImage& rock,rImage& paper,rImage& Scissor,rImage& select, bool player
                     en=playOption::SCISSORS;
                 }
                 auto res=evaluate(pl,en);
-                std::cout << (rIsPlayer1() ? "Player1 has " : "Player2 has ") << ((res == state::WIN) ? "Won." : ((res==state::TIE) ? "Tied." : "Loss.")) << "\n";
+                switch (res) {
+                    case state::WIN:
+                        winS.play();
+                        break;
+                    case state::LOSS:
+                        lossS.play();
+                        break;
+                    case state::TIE:
+                        tieS.play();
+                        break;
+                }
                 confirmed=false;
+                std::string txt = ((rIsPlayer1() ? "Player1 has " : "Player2 has ") + std::string(((res == state::WIN) ? "Won." : ((res==state::TIE) ? "Tied." : "Loss."))));
+                status.set(f, txt.c_str());
             }
             start=SDL_GetTicks64();
         }
@@ -186,10 +212,9 @@ void draw(rImage& rock,rImage& paper,rImage& Scissor,rImage& select, bool player
             Scissor.r.y=100;
             select.r.y-=select.r.h+10;
         }
-        
-        rock.r=drag(rock,select,playOption::ROCK);
-        paper.r=drag(paper,select,playOption::PAPER);
-        Scissor.r=drag(Scissor,select,playOption::SCISSORS);
+        rock.r=drag(rock,select,playOption::ROCK,f,status);
+        paper.r=drag(paper,select,playOption::PAPER,f,status);
+        Scissor.r=drag(Scissor,select,playOption::SCISSORS,f,status);
         select.draw();
     
         rock.draw();

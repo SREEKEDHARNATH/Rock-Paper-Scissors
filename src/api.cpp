@@ -1,10 +1,12 @@
 #include "api.hpp"
 #include "SDL_image.h"
+#include "SDL_mixer.h"
 #include "SDL_pixels.h"
 #include "SDL_render.h"
 #include "SDL_surface.h"
 #include "SDL_ttf.h"
 #include "core.hpp"
+#include <cstdio>
 #include <iostream>
 
 rImage::rImage(const char* file, bool autoset){
@@ -117,4 +119,77 @@ void rText::draw(){
 }
 std::string rText::getText(){
     return t;
+}
+
+rMusic::rMusic(const char* file,bool load){
+    if (load){
+        set(file);
+    }
+}
+void rMusic::set(const char* file){
+    auto m = Mix_LoadMUS(file);
+    if (!m){
+        std::cerr << Mix_GetError() << "\n";
+        return;
+    }
+    ptr.reset(m, Mix_FreeMusic);
+}
+void rMusic::play(bool loops){
+    if (get().get()){
+        Mix_PlayMusic(get().get(), loops);
+    }
+}
+void rMusic::pause(){
+    if (get().get()){
+        Mix_PauseMusic();
+    }
+}
+void rMusic::resume(){
+    if (get().get()){
+        Mix_ResumeMusic();
+    }
+}
+void rMusic::halt(){
+    if (get().get()){
+        Mix_HaltMusic();
+    }
+}
+void rMusic::setvol(int vol){
+    if (get().get()){
+        if (vol > -1 && vol < 101){
+            Mix_VolumeMusic(vol);
+        }
+    }
+}
+std::shared_ptr<Mix_Music> rMusic::get(){
+    return ptr;
+}
+
+rSoundEffect::rSoundEffect(const char *file,bool load){
+    if (load){
+        set(file);
+    }
+}
+void rSoundEffect::set(const char *file){
+    auto s = Mix_LoadWAV(file);
+    if (!s){
+        std::cerr << Mix_GetError() << "\n";
+        return;
+    }
+    ptr.reset(s, Mix_FreeChunk);
+}
+void rSoundEffect::play(){
+    if (get().get()){
+        Mix_PlayChannel(-1, get().get(),false);
+    }
+}
+void rSoundEffect::setvol(int vol){
+    if (get().get()){
+        if (vol > -1 && vol < 101){
+            Mix_VolumeChunk(get().get(), vol);
+        }
+    }
+}
+std::shared_ptr<Mix_Chunk> rSoundEffect::get(){
+    return ptr;
 }
