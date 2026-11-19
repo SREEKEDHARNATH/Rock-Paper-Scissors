@@ -3,6 +3,7 @@ echo "Make sure you are connected to internet"
 wget "https://github.com/SREEKEDHARNATH/Rock-Paper-Scissors/releases/download/v1.0/Rock-Paper-Scissors.AppImage"
 if [[ $? -eq 0 ]]; then
     FLAGS=" "
+    chmod +x Rock-Paper-Scissors.AppImage
     if [[ $1 == "-i" ]]; then
         IP=$2
         FLAGS="$IP -player2"
