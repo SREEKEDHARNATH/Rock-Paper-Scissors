@@ -56,9 +56,9 @@ void rImage::set(SDL_Texture* tex, bool autoset){
 }
 
 void rImage::autoSet(){
-if (get().get()){
-    SDL_QueryTexture(get().get(), NULL,NULL,&r.w,&r.h);
-}
+    if (get().get()){
+        SDL_QueryTexture(get().get(), NULL,NULL,&r.w,&r.h);
+    }
 }
 void rImage::draw(){
     if (r.w==0 || r.h==0){
@@ -87,4 +87,34 @@ void rFont::set(const char* file,int ptsize){
 }
 std::shared_ptr<TTF_Font> rFont::get(){
     return ptr;
+}
+
+rText::rText(rFont& f,const char* txt,SDL_Colour fg,bool load){
+    if (load){
+        set(f, txt,fg);
+    }
+}
+void rText::set(rFont& f,const char* txt,SDL_Colour fg){
+    if (!std::string(txt).empty()){
+        if (f.get().get()){
+            auto surf = TTF_RenderUTF8_Blended(f.get().get(), txt, fg);
+            if (!surf){
+                std::cerr << TTF_GetError() << "\n";
+                return;
+            }
+            auto tex = SDL_CreateTextureFromSurface(rGetRenderer(), surf);
+            if (!tex){
+                std::cerr << SDL_GetError() << "\n";
+                return;
+            }
+            img.set(tex);
+            t=txt;
+        }
+    }
+}
+void rText::draw(){
+    img.draw();
+}
+std::string rText::getText(){
+    return t;
 }

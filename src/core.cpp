@@ -6,6 +6,7 @@
 #include "SDL_events.h"
 #include "SDL_render.h"
 #include "SDL_timer.h"
+#include "SDL_ttf.h"
 #include "SDL_video.h"
 #include "api.hpp"
 #include "game.hpp"
@@ -91,6 +92,8 @@ void rRun(int argc, char** argv){
     rImage scissors("assets/images/scissors.png");
     rImage selection("assets/images/selection.png");
     
+    rFont f("assets/fonts/font.ttf");
+    rText t(f,"Hello World");
     SDL_ShowWindow(rGetWindow());
     while (running) {
         while (SDL_PollEvent(&e)) {
@@ -120,6 +123,7 @@ void rRun(int argc, char** argv){
         SDL_RenderClear(rGetRenderer());
         bg.draw();
         draw(rock, paper, scissors, selection, argv[argc-1] != std::string("-player2"));
+        t.draw();
         SDL_RenderPresent(rGetRenderer());
         
         rKUpdate();
@@ -138,6 +142,9 @@ std::pair<bool, const char*> init(int argc, char** argv){
     }
     if ((IMG_Init(img_flags) & img_flags) != img_flags){
         return {false, IMG_GetError()};;
+    }
+    if (TTF_Init()){
+        return {false, TTF_GetError()};;
     }
     rGetWindow()=SDL_CreateWindow(rGetTitle(), SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED, rGetW(), rGetH(), SDL_WINDOW_HIDDEN);
     if (!rGetWindow()){
@@ -164,6 +171,7 @@ void rQuit(){
         }
         SDLNet_FreeSocketSet(socketset);
     }
+    TTF_Quit();
     SDLNet_Quit();
     IMG_Quit();
     if (rGetRenderer()){

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "SDL_pixels.h"
 #include "SDL_rect.h"
 #include "SDL_render.h"
 #include <memory>
@@ -27,4 +28,13 @@ class rFont{
         rFont(const char* file,int ptsize=32,bool load=true);
         void set(const char* file,int ptsize=32);
         std::shared_ptr<TTF_Font> get();
+};
+class rText{
+    std::string t;
+    public:
+        rImage img;
+        rText(rFont& f,const char* txt,SDL_Colour fg={255,255,255,255},bool load=true);
+        void set(rFont& f,const char* txt,SDL_Colour fg={255,255,255,255});
+        std::string getText();
+        void draw();
 };
