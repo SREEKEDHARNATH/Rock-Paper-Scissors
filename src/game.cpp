@@ -26,7 +26,7 @@ state evaluate(playOption p1, playOption p2){
             return state::LOSS;
         }
     }
-    else {
+    else if (p1==playOption::SCISSORS){
         if (p2==playOption::ROCK){
             return state::LOSS;
         }
@@ -37,17 +37,19 @@ state evaluate(playOption p1, playOption p2){
     return state::TIE;
 }
 bool confirmed=false;
+std::vector<bool> sel;
 SDL_Rect drag(rImage& obj,rImage& select,playOption pla,rFont& f,rText& status){
     static rSoundEffect rockS("assets/sound effects/rock.mp3");
     static rSoundEffect paperS("assets/sound effects/paper.mp3");
     static rSoundEffect scissorS("assets/sound effects/scissor.mp3");
-    
+    paperS.setvol(100);
+    scissorS.setvol(100);
+    rockS.setvol(50);
     static rImage confirm("assets/images/confirm.png");
     static std::unordered_map<int, std::pair<int, bool>> map;
     static std::vector<SDL_Rect> rects;
 
     static std::vector<bool> hold;
-    static std::vector<bool> sel;
     static std::vector<playOption> playop;
     static int confirmedpos;
     if (!(confirm.r.x==select.r.x)){
@@ -117,8 +119,19 @@ SDL_Rect drag(rImage& obj,rImage& select,playOption pla,rFont& f,rText& status){
             se.w*=3;
             se.h*=3;
             if (SDL_HasIntersection(&mouse, &se)){
-                sel[p.first]=true;
-                return select.r;
+                bool shouldselect=false;
+                for (int i=0;i<hold.size();i++){
+                    if (i==p.first){
+                        continue;
+                    }
+                    if (sel[i]){
+                        shouldselect=true;
+                    }
+                }
+                sel[p.first]=!shouldselect;
+                if (sel[p.first]){
+                    return select.r;
+                }
             }
             sel[p.first]=false;
             return obj.r;
@@ -160,7 +173,7 @@ void draw(rImage& rock,rImage& paper,rImage& Scissor,rImage& select, bool player
     }
     if (confirmed){
         static auto start=SDL_GetTicks64();
-        if ((SDL_GetTicks64()-start)>1000){
+        if ((SDL_GetTicks64()-start)>2000){
             auto msg = rRecieve();
             if (!msg.empty()){
                 playOption en;
@@ -173,18 +186,23 @@ void draw(rImage& rock,rImage& paper,rImage& Scissor,rImage& select, bool player
                 else if (msg=="S"){
                     en=playOption::SCISSORS;
                 }
-                auto res=evaluate(pl,en);
+                state res;
+                res=evaluate(pl,en);
+                std::string txt = (rIsPlayer1() ? "Player1 has " : "Player2 has ");
                 switch (res) {
                     case state::WIN:
                         winS.play();
                         sc++;
+                        txt+="Win.";
                         break;
                     case state::LOSS:
                         lossS.play();
                         sc--;
+                        txt+="Loss.";
                         break;
                     case state::TIE:
                         tieS.play();
+                        txt+="Tied.";
                         break;
                 }
                 if (sc<0){
@@ -194,7 +212,9 @@ void draw(rImage& rock,rImage& paper,rImage& Scissor,rImage& select, bool player
                     score.set(f, std::to_string(sc).c_str());
                 }
                 confirmed=false;
-                std::string txt = ((rIsPlayer1() ? "Player1 has " : "Player2 has ") + std::string(((res == state::WIN) ? "Won." : ((res==state::TIE) ? "Tied." : "Loss."))));
+                for (int i=0;i<sel.size();i++){
+                    sel[i]=false;
+                }
                 status.set(f, txt.c_str());
             }
             start=SDL_GetTicks64();
@@ -206,16 +226,13 @@ void draw(rImage& rock,rImage& paper,rImage& Scissor,rImage& select, bool player
         rock.r.x=200;
         paper.r.x=600;
         Scissor.r.x=1000;
+        rock.r.y=100;
+        paper.r.y=100;
+        Scissor.r.y=100;
         if (player1){
             rock.r.y=600;
             paper.r.y=600;
             Scissor.r.y=600;
-        }
-        else {
-            rock.r.y=100;
-            paper.r.y=100;
-            Scissor.r.y=100;
-            select.r.y-=select.r.h+10;
         }
         rock.r=drag(rock,select,playOption::ROCK,f,status);
         paper.r=drag(paper,select,playOption::PAPER,f,status);

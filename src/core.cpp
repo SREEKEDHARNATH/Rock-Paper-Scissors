@@ -95,9 +95,10 @@ void rRun(int argc, char** argv){
     
     rFont f("assets/fonts/font.ttf");
     rMusic m("assets/music/MEGALOVANIA.mp3");
+    m.setvol(10);
     m.play();
     
-    rText status(f,"Play");
+    rText status(f,std::string(rIsPlayer1() ? "Player1 Play" : "Player2 Play").c_str());
     status.img.r.x+=(rGetW()/2)-(status.img.r.w+30);
 
     SDL_ShowWindow(rGetWindow());
@@ -128,7 +129,7 @@ void rRun(int argc, char** argv){
         }
         SDL_RenderClear(rGetRenderer());
         bg.draw();
-        draw(rock, paper, scissors, selection, argv[argc-1] != std::string("-player2"), f,status);
+        draw(rock, paper, scissors, selection, rIsPlayer1(), f,status);
         SDL_RenderPresent(rGetRenderer());
         
         rKUpdate();

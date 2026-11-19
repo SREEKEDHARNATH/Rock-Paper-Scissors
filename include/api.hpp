@@ -54,7 +54,7 @@ class rMusic{
 };
 class rSoundEffect{
     std::shared_ptr<Mix_Chunk> ptr;
-    int vol=40;
+    int vol=60;
     public:
         rSoundEffect(const char* file,bool load=true);
         void set(const char* file);
