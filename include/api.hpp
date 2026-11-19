@@ -3,6 +3,7 @@
 #include "SDL_rect.h"
 #include "SDL_render.h"
 #include <memory>
+#include "SDL_ttf.h"
 class rImage{
     std::shared_ptr<SDL_Texture> ptr;
     public:
@@ -19,4 +20,11 @@ class rImage{
         void autoSet();
         void draw();
         std::shared_ptr<SDL_Texture> get();
+};
+class rFont{
+    std::shared_ptr<TTF_Font> ptr;
+    public:
+        rFont(const char* file,int ptsize=32,bool load=true);
+        void set(const char* file,int ptsize=32);
+        std::shared_ptr<TTF_Font> get();
 };

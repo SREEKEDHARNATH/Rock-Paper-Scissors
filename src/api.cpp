@@ -3,6 +3,7 @@
 #include "SDL_pixels.h"
 #include "SDL_render.h"
 #include "SDL_surface.h"
+#include "SDL_ttf.h"
 #include "core.hpp"
 #include <iostream>
 
@@ -68,5 +69,22 @@ void rImage::draw(){
     }
 }
 std::shared_ptr<SDL_Texture> rImage::get(){
+    return ptr;
+}
+
+rFont::rFont(const char* file,int ptsize,bool load){
+    if (load){
+        set(file,ptsize);
+    }
+}
+void rFont::set(const char* file,int ptsize){
+    auto t=TTF_OpenFont(file, ptsize);
+    if (!t){
+        std::cerr << TTF_GetError() << "\n";
+        return;
+    }
+    ptr.reset(t, TTF_CloseFont);
+}
+std::shared_ptr<TTF_Font> rFont::get(){
     return ptr;
 }
