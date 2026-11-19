@@ -6,6 +6,7 @@
 #include "SDL_error.h"
 #include "SDL_events.h"
 #include "SDL_render.h"
+#include "SDL_surface.h"
 #include "SDL_timer.h"
 #include "SDL_ttf.h"
 #include "SDL_video.h"
@@ -137,7 +138,7 @@ void rRun(int argc, char** argv){
         SDL_Delay(16);
     }
 }
-
+SDL_Surface* icon;
 std::pair<bool, const char*> init(int argc, char** argv){
     int img_flags=IMG_INIT_PNG;
     int sound_flags=MIX_INIT_MP3;
@@ -165,6 +166,13 @@ std::pair<bool, const char*> init(int argc, char** argv){
     if (!rGetRenderer()){
         return {false, SDL_GetError()};
     }
+    icon = IMG_Load("assets/images/logo.png");
+    if (icon){
+        SDL_SetWindowIcon(rGetWindow(), icon);
+    }
+    else {
+        return {false, IMG_GetError()};;
+    }
     rIsPlayer1()=argv[argc-1] != std::string("-player2");
     socketimp = handlerequest(rIsPlayer1());
     if (socketimp){
@@ -181,6 +189,9 @@ void rQuit(){
             SDLNet_TCP_Close(socketimp);
         }
         SDLNet_FreeSocketSet(socketset);
+    }
+    if (icon){
+        SDL_FreeSurface(icon);
     }
     Mix_CloseAudio();
     Mix_Quit();
